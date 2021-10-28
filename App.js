@@ -3,7 +3,7 @@ import {StatusBar, SafeAreaView, Platform, Linking, TouchableOpacity, ScrollView
 import {NavigationContainer,useNavigationState} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {View, Text, Card, Image, ActionBar} from 'react-native-ui-lib';
-import {Ionicons,Entypo,AntDesign,Fontisto,MaterialCommunityIcons} from '@expo/vector-icons';
+import {Ionicons,Entypo,AntDesign,Fontisto,MaterialCommunityIcons,FontAwesome} from '@expo/vector-icons';
 import { MenuProvider as PopupMenuProvider } from 'react-native-popup-menu';
 import {
   Menu as PopupMenu,
@@ -14,21 +14,29 @@ import {
 
 const Stack = createNativeStackNavigator();
 
-function Dashboard_EventCard({ style, image, name, description }) {
-  let cardStyle = {
-    display: "flex",
-    alignItems: "center",
-    flexDirection: "row",
-    height: 100,
-  };
-
+function Dashboard_EventCard({ style, eventData }) {
   return (
     <TouchableOpacity style={style}>
-      <Card borderRadius={10} style={cardStyle} enableShadow={true}>
-        <Image style={{height: 100, width: 100}} borderTopLeftRadius={10} borderBottomLeftRadius={10} source={image} resizeMode="cover" />
-        <View style={{flex: 1, display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column"}}>
-          <Text style={{paddingVertical: 5}} text60BL center={true}>{name}</Text>
-          <Text style={{paddingVertical: 5}} text70 center={true}>{description}</Text>              
+      <Card borderRadius={10} enableShadow={true}>
+        <View style={{display: "flex", alignItems: "center", flexDirection: "row", height: 100 }}>
+          <Image style={{height: 100, width: 100}} borderTopLeftRadius={10} source={eventData.image} resizeMode="cover" />
+          <View style={{flex: 1, display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column"}}>
+            <Text style={{paddingVertical: 5}} text60BL center={true}>{eventData.name}</Text>
+            <Text style={{paddingVertical: 5}} text70 center={true}>{eventData.description}</Text>              
+          </View>
+        </View>
+        <View flex paddingVertical={10} style={{paddingHorizontal: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between"}}>
+          <View flex style={{flex:1, flexDirection: "row", alignItems: "center", justifyContent: "space-evenly"}}>
+            <View flex style={{flexDirection: "row", alignItems: "center"}}>
+              <Ionicons name="people" size={24} color="black" />
+              <Text text70> {eventData.nPeople}</Text>
+            </View>
+            <View flex style={{flexDirection: "row", alignItems: "center"}}>
+              <Ionicons name="location" size={24} color="black" />
+              <Text text70>{eventData.location}</Text>
+            </View>
+          </View>
+          <Ionicons name="arrow-forward-sharp" size={30} color="black" />
         </View>
       </Card>
     </TouchableOpacity>
@@ -37,15 +45,16 @@ function Dashboard_EventCard({ style, image, name, description }) {
 
 function Dashboard_StatusList() {
   const eventData = [
-    {image: require('./assets/moon.jpg'), name: "Moon Landing Skeptics", description: "11/17/2021"},
-    {image: require('./assets/ussr.png'), name: "Communist Reunion",     description: "11/23/2021"},
+    {image: require('./assets/moon.jpg'),       name: "Moon Landing Skeptics",      description: "11/17/2021", nPeople: 420, location: "Atlanta, GA"},
+    {image: require('./assets/ussr.png'),       name: "Our Communist Party",        description: "11/23/2021", nPeople: 627,  location: "Atlanta, GA"},
+    {image: require('./assets/illuminati.jpg'), name: "New World Order Resistance", description: "11/23/2021", nPeople: 1298,  location: "Atlanta, GA"},
   ];
 
   return (
     <ScrollView>
     {
       eventData.map((e, i) => {
-        return <Dashboard_EventCard key={i} style={{ paddingTop: i != 0 ? 20 : 0 }} image={e.image} name={e.name} description={e.description} />
+        return <Dashboard_EventCard key={i} style={{ paddingTop: i != 0 ? 20 : 0 }} eventData={e} />
       })
     }
     </ScrollView>
@@ -54,15 +63,16 @@ function Dashboard_StatusList() {
 
 function Dashboard_Status() {
   return (
-    <Card borderRadius={10} style={{display: "flex", flexDirection: "row", paddingHorizontal: 12}}>
-      <View flex style={{flex:1}}>
+    <Card borderRadius={10} style={{display: "flex", flexDirection: "row", paddingHorizontal: 12, padding: 15}}>
+      <View flex style={{flex:1, justifyContent: "center", alignItems: "center"}}>
         <Text center text60>Vaccine</Text>
-        <Text>
-          Test
-        </Text>
+        <AntDesign style={{marginVertical: 10}} name="checkcircle" size={40} color="green" />
+        <Text text70>2/2</Text>
       </View>
-      <View flex style={{flex:1}}>
+      <View flex style={{flex:1, justifyContent: "center", alignItems: "center"}}>
         <Text center text60>Tests</Text>
+        <FontAwesome style={{marginVertical: 10}} name="warning" size={40} color="orange" />
+        <Text text70>Test has expired</Text>
       </View>
     </Card>
   );
