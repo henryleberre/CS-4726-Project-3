@@ -164,17 +164,18 @@ function App_OpenSourceBody() {
 
   return (
     <View flex>
-      <Text text70>Open Source Dependencies & Licenses:</Text>
+      <Text text60BL style={{textAlign: "justify"}} justify>
+        This service relies on the incredible work of the open-source community, leveraging the unique skills and abilities of creators around the world.
+        {'\n'} {'\n'}
+        Open Source Dependencies & Licenses:
+      </Text>
       {
         items.map((e, i) => {
           return (
-            <View key={i} flex style={{flexDirection: "row"}}>
-              <Text>- </Text>
-              <View flex style={{flex:1}}>
-                <Text style={{color: "#0000FF", fontWeight: "800"}} onPress={() => Linking.openURL(e.link)}>{e.name}: </Text>
-                <Text style={{textAlign: "justify"}}>{e.description}</Text>
-                <Text center style={{color: "#0000FF"}} onPress={() => Linking.openURL(e.license_link)}>View License</Text>
-              </View>
+            <View key={i} style={{paddingVertical: 20}}>
+              <Text text50BL center style={{paddingVertical: 5, color: "#0000FF", fontWeight: "800"}} onPress={() => Linking.openURL(e.link)}>{e.name}: </Text>
+              <Text text60BL style={{textAlign: "justify"}}>{e.description}</Text>
+              <Text text60BL center style={{color: "#0000FF", paddingTop: 10}} onPress={() => Linking.openURL(e.license_link)}>View License</Text>
             </View>
           );
         })
