@@ -1,17 +1,17 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {StatusBar, SafeAreaView, Platform, Linking, TouchableOpacity, ScrollView} from 'react-native';
 import {NavigationContainer,useNavigationState} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {View, Text, Card, Image, ActionBar} from 'react-native-ui-lib';
+import {View, Text, Card, Image, ActionBar, Chip, Switch} from 'react-native-ui-lib';
 import {Ionicons,Entypo,AntDesign,Fontisto,MaterialCommunityIcons,FontAwesome} from '@expo/vector-icons';
-import { MenuProvider as PopupMenuProvider } from 'react-native-popup-menu';
+import {MenuProvider as PopupMenuProvider} from 'react-native-popup-menu';
+import QRCode from 'react-native-qrcode-svg';
 import {
   Menu as PopupMenu,
   MenuOptions as PopupMenuOptions,
   MenuOption as PopupMenuOption,
   MenuTrigger as PopupMenuTrigger,
 } from 'react-native-popup-menu';
-import QRCode from 'react-native-qrcode-svg';
 
 const Stack = createNativeStackNavigator();
 
@@ -25,7 +25,7 @@ const PageOuterPaddingView = ({children, style}) => <View style={Object.assign({
 
 function Dashboard_StatusCard({event, navigation, style}) {
   return (
-    <TouchableOpacity onPressOut={() => {navigation.navigate("Event");}} style={style}>
+    <TouchableOpacity onPressOut={() => {navigation.navigate("Event", event);}} style={style}>
       <Card borderRadius={10} enableShadow={true}>
         <View style={{display: "flex", alignItems: "center", flexDirection: "row", height: 100 }}>
           <Image style={{height: 100, width: 100}} borderTopLeftRadius={10} source={event.image} resizeMode="cover" />
@@ -52,12 +52,12 @@ function Dashboard_StatusCard({event, navigation, style}) {
   );
 }
 
-function App_Event({ navigation }) {
-  const event = EVENT_DATA[0];
+function App_Event({ navigation, route }) {
+  const event = route.params;
 
   return (
     <View flex>
-      <Text style={{paddingVertical: 5}} center text50>{event.name}</Text>
+      <Text style={{paddingVertical: 20}} center text50>{event.name}</Text>
       <Image style={{height: 150, width: "100%"}} source={event.image} resizeMode="cover" />
       <PageOuterPaddingView flex style={{justifyContent: "center", alignItems: "center"}}>
         <View flex style={{width: "100%", flexDirection: "row", justifyContent: "space-around", marginVertical: 20}}>
@@ -79,19 +79,21 @@ function App_Event({ navigation }) {
             enableLinearGradient
             backgroundColor="#000000"
             size={200}
-            linearGradient={['rgb(255,255,255)','rgb(255,0,255)']	}
+            linearGradient={['rgb(0,255,255)','rgb(255,255,0)']	}
             value="https://youtu.be/dQw4w9WgXcQ"
           />
         </View>
         <Text center style={{marginVertical: 20}}>
           QR-Codes regenerate every 10s and disappear once used
+          {'\n'}
+          They only function during the event
         </Text>
       </PageOuterPaddingView>
     </View>
   );
 }
 
-function Dashboard_StatusList(navigation) {
+function Dashboard_StatusList({navigation}) {
   return (
     <ScrollView>
     {
@@ -118,7 +120,7 @@ function Dashboard_Status() {
   );
 }
 
-function Dashboard_Privacy() {
+function App_PrivacyBody() {
   return (
     <Text>
       We could perhaps place a copy of our Privacy Policy right here.
@@ -126,7 +128,7 @@ function Dashboard_Privacy() {
   );
 }
 
-function Dashboard_OpenSource() {
+function App_OpenSourceBody() {
   const items = [
     {
       "name": "React Native",
@@ -193,7 +195,7 @@ function GenerateSections(sections, navigation) {
                 <Text text50 heading>{e.name}</Text>
                 {e.obj_right}
               </View>
-              {e.func(navigation)}
+              {e.func({navigation})}
             </View>
           );
         })
@@ -224,7 +226,7 @@ function IconPopupMenu({ touchable, items }) {
   );
 }
 
-function App_Dashboard(navigation) {
+function App_Dashboard({navigation}) {
   const statusPopupItems = [
     {
       text: "Add Vaccine",
@@ -268,36 +270,36 @@ function App_Dashboard(navigation) {
   );
 }
 
-function App_Privacy(navigation) {
+function App_Privacy({navigation}) {
   return (
     <PageOuterPaddingView>
       {GenerateSections([{
         name: "Your Privacy",
         obj_right: <></>,
-        func: Dashboard_Privacy
+        func: App_PrivacyBody
       }], navigation)}
     </PageOuterPaddingView>
   );
 }
 
-function App_OpenSource(navigation) {
+function App_OpenSource({navigation}) {
   return (
     <PageOuterPaddingView>
     {GenerateSections([{
       name: "Open Source",
       obj_right: <></>,
-      func: Dashboard_OpenSource
+      func: App_OpenSourceBody
     }], navigation)}
     </PageOuterPaddingView>
   );
 }
 
-function ScreenHolder({navigation, func}) {
+function ScreenHolder({navigation, route, func}) {
   return (
     <SafeAreaView style={{ flex:1, backgroundColor: "#FFFFFF" }}>
       <View flex padding-page style={{paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0}}>
         <ScrollView style={{backgroundColor: "white"}}>
-          {func(navigation)}
+          {func({navigation, route})}
           <Text>{"\n"}{"\n"}</Text>
         </ScrollView>
         <App_Navbar navigation={navigation} />
@@ -307,10 +309,10 @@ function ScreenHolder({navigation, func}) {
 }
 
 const APP_SCREENS = [
-  { bNavbarShow: true,  name: "Privacy",    icon_func: (color) => <Entypo    name="lock"   size={20} color={color} />, func: App_Privacy    },
-  { bNavbarShow: true,  name: "Dashboard",  icon_func: (color) => <Entypo    name="home"   size={20} color={color} />, func: App_Dashboard  },
-  { bNavbarShow: true,  name: "OpenSource", icon_func: (color) => <AntDesign name="github" size={20} color={color} />, func: App_OpenSource },
-  { bNavbarShow: false, name: "Event",      icon_func: () => {},                                                       func: App_Event      }
+  { bNavbarShow: true,  name: "Dashboard",  icon_func: (color) => <Entypo    name="home"     size={20} color={color} />, func: App_Dashboard  },
+  { bNavbarShow: true,  name: "Privacy",    icon_func: (color) => <Entypo    name="lock"     size={20} color={color} />, func: App_Privacy    },
+  { bNavbarShow: true,  name: "OpenSource", icon_func: (color) => <AntDesign name="github"   size={20} color={color} />, func: App_OpenSource },
+  { bNavbarShow: false, name: "Event",      icon_func: () => {},                                                         func: App_Event      }
 ];
 
 function App_Navbar({ navigation, activeItemKey }) {
@@ -339,11 +341,11 @@ export default function App() {
   return (
     <PopupMenuProvider>
       <NavigationContainer>
-        <Stack.Navigator screenOptions={{headerShown: false}} initialRouteName={APP_SCREENS[1].name}>
+        <Stack.Navigator screenOptions={{headerShown: false}} initialRouteName={APP_SCREENS[0].name}>
           {
             APP_SCREENS.map((e, i) => {
               return (
-                <Stack.Screen key={{i}} name={e.name}>
+                <Stack.Screen key={i} name={e.name}>
                   {props => <ScreenHolder {...props} func={e.func} />}
                 </Stack.Screen>
               );
