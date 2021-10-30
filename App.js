@@ -2,9 +2,10 @@ import React, {useState, useEffect} from 'react';
 import {StatusBar, SafeAreaView, Platform, Linking, TouchableOpacity, ScrollView} from 'react-native';
 import {NavigationContainer,useNavigationState} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {View, Text, Card, Image, ActionBar, Chip, Switch} from 'react-native-ui-lib';
+import {View, Text, Card, Image, ActionBar, Chip, Switch, Button} from 'react-native-ui-lib';
 import {Ionicons,Entypo,AntDesign,Fontisto,MaterialCommunityIcons,FontAwesome} from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
+import { Camera } from 'expo-camera';
 import {
   Menu as PopupMenu,
   MenuOptions as PopupMenuOptions,
@@ -21,11 +22,11 @@ const EVENT_DATA = [
   {image: require('./assets/illuminati.jpg'), name: "New World Order Resistance", date: "11/23/2021", nPeople: 1298, location: "Atlanta, GA"},
 ];
 
-const PageOuterPaddingView = ({children, style}) => <View style={Object.assign({}, style, {marginHorizontal: 12})}>{children}</View>;
+const PageOuterPaddingView = ({children, style}) => <View style={Object.assign({}, style, {paddingHorizontal: 12})}>{children}</View>;
 
 function Dashboard_StatusCard({event, navigation, style}) {
   return (
-    <TouchableOpacity onPressOut={() => {navigation.navigate("Event", event);}} style={style}>
+    <TouchableOpacity onPress={() => {navigation.navigate("Event", event);}} style={style}>
       <Card borderRadius={10} enableShadow={true}>
         <View style={{display: "flex", alignItems: "center", flexDirection: "row", height: 100 }}>
           <Image style={{height: 100, width: 100}} borderTopLeftRadius={10} source={event.image} resizeMode="cover" />
@@ -164,7 +165,7 @@ function App_OpenSourceBody() {
 
   return (
     <View flex>
-      <Text text60BL style={{textAlign: "justify"}} justify>
+      <Text text70 style={{textAlign: "justify"}} justify>
         This service relies on the incredible work of the open-source community, leveraging the unique skills and abilities of creators around the world.
         {'\n'} {'\n'}
         Open Source Dependencies & Licenses:
@@ -173,9 +174,9 @@ function App_OpenSourceBody() {
         items.map((e, i) => {
           return (
             <View key={i} style={{paddingVertical: 20}}>
-              <Text text50BL center style={{paddingVertical: 5, color: "#0000FF", fontWeight: "800"}} onPress={() => Linking.openURL(e.link)}>{e.name}: </Text>
-              <Text text60BL style={{textAlign: "justify"}}>{e.description}</Text>
-              <Text text60BL center style={{color: "#0000FF", paddingTop: 10}} onPress={() => Linking.openURL(e.license_link)}>View License</Text>
+              <Text text60 center style={{paddingVertical: 5, color: "#0000FF", fontWeight: "800"}} onPress={() => Linking.openURL(e.link)}>{e.name}: </Text>
+              <Text text70 style={{textAlign: "justify"}}>{e.description}</Text>
+              <Text text70 center style={{color: "#0000FF", paddingTop: 10}} onPress={() => Linking.openURL(e.license_link)}>View License</Text>
             </View>
           );
         })
@@ -296,19 +297,30 @@ function App_OpenSource({navigation}) {
 }
 
 function App_AddTest({navigation, route}) {
-  let {step} = route.params;
+  const {step} = route.params;
 
-  alert(step);
+  useEffect(() => {
+    (async () => {
+      await Camera.requestCameraPermissionsAsync();
+    })();
+  }, []);
 
   return (
-    <>
+    <View style={{display: "flex", flexDirection: "column"}}>
       <View style={{width: "100%", backgroundColor: "#000000", paddingVertical: 10}}>
         <Text text50 center white>Add a Test</Text>
       </View>
-      <PageOuterPaddingView>
-        <Text>Hello</Text>
+      <PageOuterPaddingView style={{width: "100%", height: "100%", paddingVertical: 30}}>
+        <Text text50 center style={{paddingTop: step==3 ? 100 : 0}}>{step==1 ? "Take a picture of your ID" : (step==2 ? "Scan your test's QR Code" : "All done! \n\n We're processing your request")}</Text>
+        
+        {step <= 2 &&
+        <>
+          <Camera style={{width: "100%", height: "100%", marginVertical: 20}} type={Camera.Constants.Type.back} />
+          <Button onPress={()=>{navigation.navigate("AddTest", {"step": step+1})}} color="white" label="Capture" backgroundColor="green"></Button>
+        </>
+        }
       </PageOuterPaddingView>
-    </>
+    </View>
   );
 }
 
