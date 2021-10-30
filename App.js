@@ -4,13 +4,13 @@ import {NavigationContainer,useNavigationState} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {View, Text, Card, Image, ActionBar, Chip, Switch} from 'react-native-ui-lib';
 import {Ionicons,Entypo,AntDesign,Fontisto,MaterialCommunityIcons,FontAwesome} from '@expo/vector-icons';
-import {MenuProvider as PopupMenuProvider} from 'react-native-popup-menu';
 import QRCode from 'react-native-qrcode-svg';
 import {
   Menu as PopupMenu,
   MenuOptions as PopupMenuOptions,
   MenuOption as PopupMenuOption,
   MenuTrigger as PopupMenuTrigger,
+  MenuProvider as PopupMenuProvider,
 } from 'react-native-popup-menu';
 
 const Stack = createNativeStackNavigator();
@@ -237,7 +237,7 @@ function App_Dashboard({navigation}) {
     {
       text: "Add Test",
       icon: <MaterialCommunityIcons name="test-tube" size={24} color="black" />,
-      func: () => {}
+      func: () => { navigation.navigate("AddTest", { "step": 1 }); }
     }
   ];
 
@@ -295,6 +295,23 @@ function App_OpenSource({navigation}) {
   );
 }
 
+function App_AddTest({navigation, route}) {
+  let {step} = route.params;
+
+  alert(step);
+
+  return (
+    <>
+      <View style={{width: "100%", backgroundColor: "#000000", paddingVertical: 10}}>
+        <Text text50 center white>Add a Test</Text>
+      </View>
+      <PageOuterPaddingView>
+        <Text>Hello</Text>
+      </PageOuterPaddingView>
+    </>
+  );
+}
+
 function ScreenHolder({navigation, route, func}) {
   return (
     <SafeAreaView style={{ flex:1, backgroundColor: "#FFFFFF" }}>
@@ -313,7 +330,8 @@ const APP_SCREENS = [
   { bNavbarShow: true,  name: "Dashboard",  icon_func: (color) => <Entypo    name="home"     size={20} color={color} />, func: App_Dashboard  },
   { bNavbarShow: true,  name: "Privacy",    icon_func: (color) => <Entypo    name="lock"     size={20} color={color} />, func: App_Privacy    },
   { bNavbarShow: true,  name: "OpenSource", icon_func: (color) => <AntDesign name="github"   size={20} color={color} />, func: App_OpenSource },
-  { bNavbarShow: false, name: "Event",      icon_func: () => {},                                                         func: App_Event      }
+  { bNavbarShow: false, name: "Event",      icon_func: () => {},                                                         func: App_Event      },
+  { bNavbarShow: false, name: "AddTest",    icon_func: () => {},                                                         func: App_AddTest    }
 ];
 
 function App_Navbar({ navigation, activeItemKey }) {

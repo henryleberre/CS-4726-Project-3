@@ -23,8 +23,7 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      },
-      "package": "android.eventsafe"
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
