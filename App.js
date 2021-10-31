@@ -5,7 +5,8 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {View, Text, Card, Image, ActionBar, Chip, Switch, Button} from 'react-native-ui-lib';
 import {Ionicons,Entypo,AntDesign,Fontisto,MaterialCommunityIcons,FontAwesome} from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
-import { Camera } from 'expo-camera';
+import {Camera} from 'expo-camera';
+import Prompt from 'react-native-input-prompt';
 import {
   Menu as PopupMenu,
   MenuOptions as PopupMenuOptions,
@@ -233,42 +234,53 @@ function App_Dashboard({navigation}) {
     {
       text: "Add Vaccine",
       icon: <Fontisto name="injection-syringe" size={24} color="black" />,
-      func: () => {}
+      func: () => { navigation.navigate("AddVaccine"); }
     },
     {
       text: "Add Test",
       icon: <MaterialCommunityIcons name="test-tube" size={24} color="black" />,
-      func: () => { navigation.navigate("AddTest", { "step": 1 }); }
+      func: () => { navigation.navigate("AddTest"); }
     }
   ];
+
+  let [code_prompt_show, set_code_prompt_show] = useState(false);
 
   const eventsPopupItems = [
     {
       text: "From Code",
       icon: <MaterialCommunityIcons name="form-textbox-password" size={24} color="black" />,
-      func: () => {}
+      func: () => { set_code_prompt_show(true); }
     },
     {
       text: "From QR Code",
       icon: <AntDesign name="qrcode" size={24} color="black" />,
-      func: () => {}
+      func: () => { navigation.navigate("AddEventQR"); }
     }
   ];
 
   return (
-    <PageOuterPaddingView>
-      {GenerateSections([
-        { 
-          name: "Your Status",
-          obj_right: (<IconPopupMenu items={statusPopupItems} touchable={<Ionicons name="add-circle-outline" size={40} color="black" />}></IconPopupMenu>), 
-          func: Dashboard_Status
-        },
-        { name: "Your Upcoming Events",
-          obj_right: (<IconPopupMenu items={eventsPopupItems} touchable={<Ionicons name="add-circle-outline" size={40} color="black" />}></IconPopupMenu>),
-          func: Dashboard_StatusList
-        }
-      ], navigation)}
-    </PageOuterPaddingView>
+    <>
+      <Prompt
+        visible={code_prompt_show}
+        title="Please enter the code"
+        placeholder="right here"
+        onCancel={() => {set_code_prompt_show(false)}}
+        onSubmit={() => {set_code_prompt_show(false)}}
+      />
+      <PageOuterPaddingView>
+        {GenerateSections([
+          { 
+            name: "Your Status",
+            obj_right: (<IconPopupMenu items={statusPopupItems} touchable={<Ionicons name="add-circle-outline" size={40} color="black" />}></IconPopupMenu>), 
+            func: Dashboard_Status
+          },
+          { name: "Your Upcoming Events",
+            obj_right: (<IconPopupMenu items={eventsPopupItems} touchable={<Ionicons name="add-circle-outline" size={40} color="black" />}></IconPopupMenu>),
+            func: Dashboard_StatusList
+          }
+        ], navigation)}
+      </PageOuterPaddingView>
+    </>
   );
 }
 
@@ -296,9 +308,7 @@ function App_OpenSource({navigation}) {
   );
 }
 
-function App_AddTest({navigation, route}) {
-  const {step} = route.params;
-
+function Page_CameraSteps({navigation, route, params, step}) {
   useEffect(() => {
     (async () => {
       await Camera.requestCameraPermissionsAsync();
@@ -307,20 +317,75 @@ function App_AddTest({navigation, route}) {
 
   return (
     <View style={{display: "flex", flexDirection: "column"}}>
-      <View style={{width: "100%", backgroundColor: "#000000", paddingVertical: 10}}>
-        <Text text50 center white>Add a Test</Text>
+      <View flex style={{width: "100%", backgroundColor: "#000000", paddingVertical: 10, flexDirection: "row", justifyContent: "space-around"}}>
+        <Text text50 center white>{params.page_title}</Text>
+        <Text text50 center white>Step {step+1}/{params.steps.length}</Text>
       </View>
       <PageOuterPaddingView style={{width: "100%", height: "100%", paddingVertical: 30}}>
-        <Text text50 center style={{paddingTop: step==3 ? 100 : 0}}>{step==1 ? "Take a picture of your ID" : (step==2 ? "Scan your test's QR Code" : "All done! \n\n We're processing your request")}</Text>
+        <Text text50 center style={{paddingTop: params.steps[step].show_camera_and_button ? 100 : 0}}>{params.steps[step].instructions}</Text>
         
-        {step <= 2 &&
+        {params.steps[step].show_camera_and_button &&
         <>
           <Camera style={{width: "100%", height: "100%", marginVertical: 20}} type={Camera.Constants.Type.back} />
-          <Button onPress={()=>{navigation.navigate("AddTest", {"step": step+1})}} color="white" label="Capture" backgroundColor="green"></Button>
+          <Button onPress={()=>{navigation.navigate("CameraSteps", {"step": step+1})}} color="white" label={params.steps[step].button_title} backgroundColor="green"></Button>
         </>
         }
       </PageOuterPaddingView>
     </View>
+  );
+}
+
+function App_AddTest({navigation, route}) {
+  return <Page_CameraSteps navigation={navigation} route={route} params={{
+    page_title: "Add a test",
+    steps: [
+      {
+        instructions: "Take a picture of your ID",
+        button_title: "Capture",
+        show_camera_and_button: true
+      },
+      {
+        instructions: "Scan your test's QR Code",
+        button_title: "Capture",
+        show_camera_and_button: true
+      },
+      {
+        instructions: "All done! \n\n We're processing your request",
+        button_title: "",
+        show_camera_and_button: false
+      }
+    ]
+  }} step={0} />;
+}
+
+function App_AddEventQR({navigation, route}) {
+  return <Page_CameraSteps navigation={navigation} route={route} params={{
+    page_title: "Add an Event",
+    steps: [
+      {
+        instructions: "Take a picture of your ID",
+        button_title: "Capture",
+        show_camera_and_button: true
+      },
+      {
+        instructions: "Scan your QR Code for the Event",
+        button_title: "Capture",
+        show_camera_and_button: true
+      },
+      {
+        instructions: "All done! \n\n We're processing your request",
+        button_title: "",
+        show_camera_and_button: false
+      }
+    ]
+  }} step={0} />;
+}
+
+function App_AddVacine({navigation, route}) {
+  return (
+    <>
+      <Text>Empty - For now</Text>
+    </>
   );
 }
 
@@ -339,11 +404,15 @@ function ScreenHolder({navigation, route, func}) {
 }
 
 const APP_SCREENS = [
-  { bNavbarShow: true,  name: "Dashboard",  icon_func: (color) => <Entypo    name="home"     size={20} color={color} />, func: App_Dashboard  },
-  { bNavbarShow: true,  name: "Privacy",    icon_func: (color) => <Entypo    name="lock"     size={20} color={color} />, func: App_Privacy    },
-  { bNavbarShow: true,  name: "OpenSource", icon_func: (color) => <AntDesign name="github"   size={20} color={color} />, func: App_OpenSource },
-  { bNavbarShow: false, name: "Event",      icon_func: () => {},                                                         func: App_Event      },
-  { bNavbarShow: false, name: "AddTest",    icon_func: () => {},                                                         func: App_AddTest    }
+  { bNavbarShow: true,  name: "Dashboard",   icon_func: (color) => <Entypo    name="home"     size={20} color={color} />, func: App_Dashboard    },
+  { bNavbarShow: true,  name: "Privacy",     icon_func: (color) => <Entypo    name="lock"     size={20} color={color} />, func: App_Privacy      },
+  { bNavbarShow: true,  name: "OpenSource",  icon_func: (color) => <AntDesign name="github"   size={20} color={color} />, func: App_OpenSource   },
+  { bNavbarShow: false, name: "Event",       icon_func: () => {},                                                         func: App_Event        },
+  { bNavbarShow: false, name: "AddTest",     icon_func: () => {},                                                         func: App_AddTest      },
+  { bNavbarShow: false, name: "AddEventQR",  icon_func: () => {},                                                         func: App_AddEventQR   },
+  { bNavbarShow: false, name: "CameraSteps", icon_func: () => {},                                                         func: Page_CameraSteps },
+  { bNavbarShow: false, name: "AddVaccine",  icon_func: () => {},                                                         func: App_AddVacine    }
+  
 ];
 
 function App_Navbar({ navigation, activeItemKey }) {
