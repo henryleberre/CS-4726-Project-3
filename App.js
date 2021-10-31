@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {StatusBar, SafeAreaView, Platform, Linking, TouchableOpacity, ScrollView} from 'react-native';
+import {Dimensions, StatusBar, SafeAreaView, Platform, Linking, TouchableOpacity, ScrollView} from 'react-native';
 import {NavigationContainer,useNavigationState} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {View, Text, Card, Image, ActionBar, Chip, Switch, Button} from 'react-native-ui-lib';
@@ -308,12 +308,20 @@ function App_OpenSource({navigation}) {
   );
 }
 
-function Page_CameraSteps({navigation, route, params, step}) {
+// This solution is really hacky, especially manipulating that route object
+function Page_CameraSteps({navigation, route}) {
   useEffect(() => {
     (async () => {
       await Camera.requestCameraPermissionsAsync();
     })();
   }, []);
+
+  const {params} = route;
+  const {step}   = params;
+
+  // This is why C++ is better than RUST
+  // Don't @me, I'm right.
+  const nextParams = (() => {let r = Object.assign({}, params); r.step++; return r;})();
 
   return (
     <View style={{display: "flex", flexDirection: "column"}}>
@@ -321,13 +329,15 @@ function Page_CameraSteps({navigation, route, params, step}) {
         <Text text50 center white>{params.page_title}</Text>
         <Text text50 center white>Step {step+1}/{params.steps.length}</Text>
       </View>
-      <PageOuterPaddingView style={{width: "100%", height: "100%", paddingVertical: 30}}>
-        <Text text50 center style={{paddingTop: params.steps[step].show_camera_and_button ? 100 : 0}}>{params.steps[step].instructions}</Text>
+      <PageOuterPaddingView style={{width: "100%", height: "100%", paddingVertical: 10}}>
+        <Text text50 center style={{paddingTop: params.steps[step].show_camera_and_button ? 30 : 0}}>{params.steps[step].instructions}</Text>
         
         {params.steps[step].show_camera_and_button &&
         <>
-          <Camera style={{width: "100%", height: "100%", marginVertical: 20}} type={Camera.Constants.Type.back} />
-          <Button onPress={()=>{navigation.navigate("CameraSteps", {"step": step+1})}} color="white" label={params.steps[step].button_title} backgroundColor="green"></Button>
+          <View style={{width: "100%", height: Dimensions.get('window').width, marginVertical: 20}}>
+            <Camera style={{flex:1}} type={Camera.Constants.Type.back} />
+          </View>
+          <Button onPress={()=>{navigation.navigate("CameraSteps", nextParams)}} color="white" label={params.steps[step].button_title} backgroundColor="green"></Button>
         </>
         }
       </PageOuterPaddingView>
@@ -335,27 +345,30 @@ function Page_CameraSteps({navigation, route, params, step}) {
   );
 }
 
-function App_AddTest({navigation, route}) {
-  return <Page_CameraSteps navigation={navigation} route={route} params={{
-    page_title: "Add a test",
-    steps: [
-      {
-        instructions: "Take a picture of your ID",
-        button_title: "Capture",
-        show_camera_and_button: true
-      },
-      {
-        instructions: "Scan your test's QR Code",
-        button_title: "Capture",
-        show_camera_and_button: true
-      },
-      {
-        instructions: "All done! \n\n We're processing your request",
-        button_title: "",
-        show_camera_and_button: false
-      }
-    ]
-  }} step={0} />;
+function App_AddTest({navigation}) {
+  return <Page_CameraSteps navigation={navigation} route={{
+    params: {
+      step: 0,
+      page_title: "Add a test",
+      steps: [
+        {
+          instructions: "Take a picture of your ID",
+          button_title: "Capture",
+          show_camera_and_button: true
+        },
+        {
+          instructions: "Scan your test's QR Code",
+          button_title: "Capture",
+          show_camera_and_button: true
+        },
+        {
+          instructions: "All done! \n\n We're processing your request",
+          button_title: "",
+          show_camera_and_button: false
+        }
+      ]
+    }
+  }} />;
 }
 
 function App_AddEventQR({navigation, route}) {
@@ -393,7 +406,7 @@ function ScreenHolder({navigation, route, func}) {
   return (
     <SafeAreaView style={{ flex:1, backgroundColor: "#FFFFFF" }}>
       <View flex padding-page style={{paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0}}>
-        <ScrollView style={{backgroundColor: "white"}}>
+        <ScrollView>
           {func({navigation, route})}
           <Text>{"\n"}{"\n"}</Text>
         </ScrollView>
@@ -412,7 +425,6 @@ const APP_SCREENS = [
   { bNavbarShow: false, name: "AddEventQR",  icon_func: () => {},                                                         func: App_AddEventQR   },
   { bNavbarShow: false, name: "CameraSteps", icon_func: () => {},                                                         func: Page_CameraSteps },
   { bNavbarShow: false, name: "AddVaccine",  icon_func: () => {},                                                         func: App_AddVacine    }
-  
 ];
 
 function App_Navbar({ navigation, activeItemKey }) {
