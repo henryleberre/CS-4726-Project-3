@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {Dimensions, StatusBar, SafeAreaView, Platform, Linking, TouchableOpacity, ScrollView} from 'react-native';
 import {NavigationContainer,useNavigationState} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {View, Text, Card, Image, ActionBar, Chip, Switch, Button} from 'react-native-ui-lib';
+import {View, Text, Card, Image, ActionBar, Button} from 'react-native-ui-lib';
 import {Ionicons,Entypo,AntDesign,Fontisto,MaterialCommunityIcons,FontAwesome} from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import {Camera} from 'expo-camera';
@@ -174,11 +174,19 @@ function App_OpenSourceBody() {
       {
         items.map((e, i) => {
           return (
-            <View key={i} style={{paddingVertical: 20}}>
-              <Text text60 center style={{paddingVertical: 5, color: "#0000FF", fontWeight: "800"}} onPress={() => Linking.openURL(e.link)}>{e.name}: </Text>
-              <Text text70 style={{textAlign: "justify"}}>{e.description}</Text>
-              <Text text70 center style={{color: "#0000FF", paddingTop: 10}} onPress={() => Linking.openURL(e.license_link)}>View License</Text>
-            </View>
+            <TouchableOpacity key={i}>
+              <View flex style={{flexDirection: "column", justifyContent: "center", alignItems: "center", marginVertical: 10}}>
+                <View flex style={{flex: 1, flexDirection: "row", alignItems: "center", paddingVertical: 10}}>
+                  <AntDesign size={1/3*77.5} name="github" color="black" style={{marginHorizontal: 10}} />
+                  <Text style={{flex: 1, fontWeight: "bold"}} center grey10 text70>
+                    {e.name}
+                  </Text>
+                </View>
+                <Text grey30 text70 style={{textAlign: "justify"}}>
+                  {e.description}
+                </Text>
+              </View>
+            </TouchableOpacity>
           );
         })
       }
@@ -330,16 +338,14 @@ function Page_CameraSteps({navigation, route}) {
         <Text text50 center white>Step {step+1}/{params.steps.length}</Text>
       </View>
       <PageOuterPaddingView style={{width: "100%", height: "100%", paddingVertical: 10}}>
-        <Text text50 center style={{paddingTop: params.steps[step].show_camera_and_button ? 30 : 0}}>{params.steps[step].instructions}</Text>
+        <Text text50 center style={{paddingTop: params.steps[step].show_camera ? 30 : 0, paddingBottom: 10}}>{params.steps[step].instructions}</Text>
         
-        {params.steps[step].show_camera_and_button &&
-        <>
-          <View style={{width: "100%", height: Dimensions.get('window').width, marginVertical: 20}}>
-            <Camera style={{flex:1}} type={Camera.Constants.Type.back} />
-          </View>
-          <Button onPress={()=>{navigation.navigate("CameraSteps", nextParams)}} color="white" label={params.steps[step].button_title} backgroundColor="green"></Button>
-        </>
+        {params.steps[step].show_camera &&
+        <View style={{width: "100%", height: Dimensions.get('window').width}}>
+          <Camera style={{flex:1}} type={Camera.Constants.Type.back} />
+        </View>
         }
+        <Button style={{marginVertical: 20}} onPress={()=>{step != params.steps.length-1 ? navigation.navigate("CameraSteps", nextParams) : navigation.navigate("Dashboard")}} color="white" label={step != params.steps.length-1 ? params.steps[step].button_title : "Return to Dashboard"} backgroundColor="green"></Button>
       </PageOuterPaddingView>
     </View>
   );
@@ -354,17 +360,17 @@ function App_AddTest({navigation}) {
         {
           instructions: "Take a picture of your ID",
           button_title: "Capture",
-          show_camera_and_button: true
+          show_camera: true,
         },
         {
           instructions: "Scan your test's QR Code",
           button_title: "Capture",
-          show_camera_and_button: true
+          show_camera: true,
         },
         {
           instructions: "All done! \n\n We're processing your request",
           button_title: "",
-          show_camera_and_button: false
+          show_camera: false,
         }
       ]
     }
@@ -372,34 +378,55 @@ function App_AddTest({navigation}) {
 }
 
 function App_AddEventQR({navigation, route}) {
-  return <Page_CameraSteps navigation={navigation} route={route} params={{
-    page_title: "Add an Event",
-    steps: [
-      {
-        instructions: "Take a picture of your ID",
-        button_title: "Capture",
-        show_camera_and_button: true
-      },
-      {
-        instructions: "Scan your QR Code for the Event",
-        button_title: "Capture",
-        show_camera_and_button: true
-      },
-      {
-        instructions: "All done! \n\n We're processing your request",
-        button_title: "",
-        show_camera_and_button: false
-      }
-    ]
-  }} step={0} />;
+  return <Page_CameraSteps navigation={navigation} route={{
+    params: {
+      step: 0,
+      page_title: "Add an Event",
+      steps: [
+        {
+          instructions: "Take a picture of your ID",
+          button_title: "Capture",
+          show_camera: true,
+        },
+        {
+          instructions: "Give us some details about your vaccination",
+          button_title: "Capture",
+          show_camera: true,
+        },
+        {
+          instructions: "All done! \n\n We're processing your request",
+          button_title: "",
+          show_camera: false,
+        }
+      ]
+    }
+  }} />;
 }
 
 function App_AddVacine({navigation, route}) {
-  return (
-    <>
-      <Text>Empty - For now</Text>
-    </>
-  );
+  return <Page_CameraSteps navigation={navigation} route={{
+    params: {
+      step: 0,
+      page_title: "Add a Vaccination",
+      steps: [
+        {
+          instructions: "Take a picture of your ID",
+          button_title: "Capture",
+          show_camera: true,
+        },
+        {
+          instructions: "Scan your QR Code for the Event",
+          button_title: "Capture",
+          show_camera: true,
+        },
+        {
+          instructions: "All done! \n\n We're processing your request",
+          button_title: "",
+          show_camera: false,
+        }
+      ]
+    }
+  }} />;
 }
 
 function ScreenHolder({navigation, route, func}) {
