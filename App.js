@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {Dimensions, StatusBar, SafeAreaView, Platform, Linking, TouchableOpacity, ScrollView} from 'react-native';
+import {Dimensions, StatusBar, SafeAreaView, Platform, Linking, TouchableOpacity, ScrollView, ImageBackground} from 'react-native';
 import {NavigationContainer,useNavigationState} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {View, Text, Card, Image, ActionBar, Button} from 'react-native-ui-lib';
@@ -58,7 +58,7 @@ function App_Event({ navigation, route }) {
   const event = route.params;
 
   return (
-    <View flex>
+    <ScrollView style={{display: "flex"}}>
       <Text style={{paddingVertical: 20}} center text50>{event.name}</Text>
       <Image style={{height: 150, width: "100%"}} source={event.image} resizeMode="cover" />
       <PageOuterPaddingView flex style={{justifyContent: "center", alignItems: "center"}}>
@@ -76,6 +76,7 @@ function App_Event({ navigation, route }) {
             <Text text70> {event.date}</Text>
           </View>
         </View>
+        <Text text50>You</Text>
         <View flex backgroundColor="#000000" style={{justifyContent: "center", alignItems: "center", borderRadius: 20, padding: 20, marginVertical: 20}}>
           <QRCode
             enableLinearGradient
@@ -85,13 +86,22 @@ function App_Event({ navigation, route }) {
             value="https://youtu.be/dQw4w9WgXcQ"
           />
         </View>
+        <Text text50 style={{paddingVertical: 20}}>Your Children</Text>
+        <View flex style={{flexDirection: "row"}}>
+          <ImageBackground source={require('./assets/bear.png')} resizeMode="stretch" style={{width: 200, height: 200, justifyContent: "flex-end", alignItems: "center"}}>
+            <QRCode size={100} value="teskjqldfkjlkqsjflkj" />
+          </ImageBackground>
+          <ImageBackground source={require('./assets/lion.jpg')} resizeMode="stretch" style={{width: 200, height: 200, justifyContent: "flex-end", alignItems: "center"}}>
+            <QRCode size={100} value="teskjqldfkjlkqsjflkj" />
+          </ImageBackground>
+        </View>
         <Text center style={{marginVertical: 20}}>
           QR-Codes regenerate every 10s and disappear once used
           {'\n'}
           They only function during the event
         </Text>
       </PageOuterPaddingView>
-    </View>
+    </ScrollView>
   );
 }
 
