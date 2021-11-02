@@ -57,6 +57,21 @@ function Dashboard_StatusCard({event, navigation, style}) {
 function App_Event({ navigation, route }) {
   const event = route.params;
 
+  const [time, setTime] = useState(Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => setTime(Date.now()), 1000);
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
+
+  let QRCodeLinks = ["https://youtu.be/dQw4w9WgXcQ", // rick roll
+                     "https://youtu.be/udBPW2rMQnc", // macron "C'est notre projet"
+                     "https://youtu.be/KWjNoYQ-92A", // macron "Penser printemps"
+                     "https://youtu.be/B-SBJjIjqYY"  // macron "Ceux qui sont et ceux qui ne sont rien"
+                    ];
+
   return (
     <ScrollView style={{display: "flex"}}>
       <Text style={{paddingVertical: 20}} center text50>{event.name}</Text>
@@ -83,16 +98,16 @@ function App_Event({ navigation, route }) {
             backgroundColor="#000000"
             size={200}
             linearGradient={['rgb(0,255,255)','rgb(255,255,0)']	}
-            value="https://youtu.be/dQw4w9WgXcQ"
+            value={QRCodeLinks[time % (QRCodeLinks.length)]}
           />
         </View>
         <Text text50 style={{paddingVertical: 20}}>Your Children</Text>
         <View flex style={{flexDirection: "row"}}>
-          <ImageBackground source={require('./assets/bear.png')} resizeMode="stretch" style={{width: 200, height: 200, justifyContent: "flex-end", alignItems: "center"}}>
-            <QRCode size={100} value="teskjqldfkjlkqsjflkj" />
+          <ImageBackground source={require('./assets/bear.jpg')} resizeMode="stretch" style={{width: 200, height: 250, justifyContent: "flex-end", alignItems: "center"}}>
+            <QRCode size={120} value={QRCodeLinks[(time+1) % QRCodeLinks.length]} />
           </ImageBackground>
-          <ImageBackground source={require('./assets/lion.jpg')} resizeMode="stretch" style={{width: 200, height: 200, justifyContent: "flex-end", alignItems: "center"}}>
-            <QRCode size={100} value="teskjqldfkjlkqsjflkj" />
+          <ImageBackground source={require('./assets/lion.jpg')} resizeMode="stretch" style={{width: 200, height: 250, justifyContent: "flex-end", alignItems: "center"}}>
+            <QRCode size={120} value={QRCodeLinks[(time+2) % QRCodeLinks.length]} />
           </ImageBackground>
         </View>
         <Text center style={{marginVertical: 20}}>
