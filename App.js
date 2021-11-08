@@ -1,13 +1,13 @@
-import React, {useState, useEffect} from 'react';
-import {Dimensions, StatusBar, SafeAreaView, Platform, Linking, TouchableOpacity, ScrollView, ImageBackground} from 'react-native';
+import React,{useState,useEffect} from 'react';
+import {Dimensions,StatusBar,SafeAreaView,Platform,TouchableOpacity,ScrollView,TextInput} from 'react-native';
 import {NavigationContainer,useNavigationState} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {View, Text, Card, Image, Button, ActionSheet} from 'react-native-ui-lib';
+import {View,Text,Card,Image,Button,ActionSheet,Dialog as RNUIDialog,Switch} from 'react-native-ui-lib';
 import {Ionicons,Entypo,AntDesign,Fontisto,MaterialCommunityIcons,FontAwesome} from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import {Camera} from 'expo-camera';
 import {FlatGrid} from 'react-native-super-grid';
-import Prompt from 'react-native-input-prompt';
+import Dialog from "react-native-dialog";
 import {
   Menu         as PopupMenu,
   MenuOptions  as PopupMenuOptions,
@@ -32,9 +32,11 @@ const EVENT_DATA = [
 
 const PageOuterPaddingView = ({children, style}) => <View style={Object.assign({}, style, {paddingHorizontal: 12})}>{children}</View>;
 
-function Dashboard_StatusCard({event, navigation, style}) {
+function Dashboard_StatusCard({eventID, navigation, style}) {
+  let event = EVENT_DATA[eventID];
+
   return (
-    <TouchableOpacity onPress={() => {navigation.navigate("Event", event);}} style={style}>
+    <TouchableOpacity onPress={() => {navigation.navigate("Event", eventID);}} style={style}>
       <Card borderRadius={10} enableShadow={true}>
         <View style={{display: "flex", alignItems: "center", flexDirection: "row", height: 100 }}>
           <Image style={{height: 100, width: 100}} borderTopLeftRadius={10} source={event.image} resizeMode="cover" />
@@ -62,7 +64,8 @@ function Dashboard_StatusCard({event, navigation, style}) {
 }
 
 function App_Event({ navigation, route }) {
-  const event = route.params;
+  const eventID = route.params;
+  let event     = EVENT_DATA[eventID];
 
   const [time, setTime] = useState(Date.now());
 
@@ -122,7 +125,8 @@ function App_Event({ navigation, route }) {
                 {!item[0] && <AntDesign onPress={() => {set_action_sheet_show(true)}} name="adduser" size={100} color="black" />}
               </Card>
             </TouchableOpacity>
-          )} />
+          )}
+        />
         <ActionSheet
           options={
             PEOPLE_DATA.filter(x => !event.family.includes(x.name)).map((e) => {
@@ -132,7 +136,8 @@ function App_Event({ navigation, route }) {
               }
             })
           }
-          visible={action_sheet_show} onDismiss={() => {set_action_sheet_show(false)}} title="Add A Member" message="msg" useNativeIOS={false}  />
+          visible={action_sheet_show} onDismiss={() => {set_action_sheet_show(false)}} title="Add A Member" message="msg" useNativeIOS={false}
+        />
       </PageOuterPaddingView>
     </ScrollView>
   );
@@ -142,7 +147,7 @@ function Dashboard_StatusList({navigation}) {
   return (
     <ScrollView>
     {
-      EVENT_DATA.map((e, i) => <Dashboard_StatusCard key={i} navigation={navigation} event={e} style={{ paddingTop: i != 0 ? 20 : 0 }} />)
+      EVENT_DATA.map((e, i) => <Dashboard_StatusCard key={i} navigation={navigation} eventID={i} style={{ paddingTop: i != 0 ? 20 : 0 }} />)
     }
     </ScrollView>
   );
@@ -303,13 +308,15 @@ function App_Dashboard({navigation}) {
 
   return (
     <>
-      <Prompt
-        visible={code_prompt_show}
-        title="Please enter the code"
-        placeholder="right here"
-        onCancel={() => {set_code_prompt_show(false)}}
-        onSubmit={() => {set_code_prompt_show(false)}}
-      />
+      <Dialog.Container visible={code_prompt_show}>
+        <Dialog.Title>Please enter the code</Dialog.Title>
+        <Dialog.Description>
+          Do you want to delete this account? You cannot undo this action.
+        </Dialog.Description>
+        <Dialog.Input placeholder="right here" />
+        <Dialog.Button onPress={() => {set_code_prompt_show(false);}} label="Cancel" />
+        <Dialog.Button onPress={() => {set_code_prompt_show(false);}} label="Submit" />
+      </Dialog.Container>
       <PageOuterPaddingView>
         {GenerateSections([
           { name: "Your Upcoming Events",
@@ -479,15 +486,32 @@ function App_People({navigation, route}) {
              func: () => {return Dashboard_Status(e)} }
   });
 
+  let [dialog_visible,  set_dialog_visible]  = useState(false);
+  let [name_text,       set_name_text]       = useState("");
+  let [underage_switch, set_underage_switch] = useState(false);
+
   return (
     <PageOuterPaddingView>
+      <RNUIDialog centerH centerV useSafeArea containerStyle={{backgroundColor: "white", padding: 30, borderRadius: 15}} onDismiss={() => {set_dialog_visible(false);}} center visible={dialog_visible}>
+        <Text center text60 style={{paddingBottom: 20}}>Add A Member</Text>
+        <Text text70 style={{paddingBottom: 10}}>Name:</Text>
+        <TextInput value={name_text} onChangeText={set_name_text} style={{borderWidth: 1, padding: 5, borderRadius: 10}} />
+        <Text text70 style={{paddingVertical: 10}}>Under Age:</Text>
+        <Switch offColor="black" onColor="green" value={underage_switch} onValueChange={set_underage_switch} />
+        <Button onPress={() => { set_dialog_visible(false); PEOPLE_DATA.push({name: name_text, bUnderAge: underage_switch, bVaccinated: false, bTested: false}) }}
+                backgroundColor="green" style={{marginTop: 20}}>
+          <Text color="white" text70>Add</Text>
+        </Button>
+      </RNUIDialog>
       <Text text50 center>Health & Profiles{'\n'}</Text>
       <View style={{display: "flex", flexDirection: "column"}}>
         {GenerateSections(sections, navigation)}
       </View>
       <Text text50>{'\n'}</Text>
       <TouchableOpacity>
-        <Button backgroundColor="white" style={{borderColor: "black", borderWidth: 2, borderRadius: 20}}><Text>Add A Member</Text></Button>
+        <Button onPress={() => {set_dialog_visible(true);}} backgroundColor="white" style={{borderColor: "black", borderWidth: 2, borderRadius: 20}}>
+          <Text>Add A Member</Text>
+        </Button>
       </TouchableOpacity>
     </PageOuterPaddingView>
   );

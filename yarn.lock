@@ -4939,11 +4939,6 @@
     "invariant" "^2.2.4"
     "prop-types" "^15.7.2"
 
-"react-native-input-prompt@^1.0.0":
-  "integrity" "sha512-xDXMD80KiJWb3sWQZpcsRfE5ZFTDXhwZPUmBPQNSvYI5l+0M4l5usHMcNNWubKZCL4Vg152cnEMtLLpjqRxAYg=="
-  "resolved" "https://registry.npmjs.org/react-native-input-prompt/-/react-native-input-prompt-1.0.0.tgz"
-  "version" "1.0.0"
-
 "react-native-popup-menu@^0.15.11":
   "integrity" "sha512-f5q2GoDN99bkA24wHiwasaErcdQEgyqYZ8IYuZPOrZNFr66E4rg6f4LElSVBA3EZJTSq5OddVeaOcU340bSTEg=="
   "resolved" "https://registry.npmjs.org/react-native-popup-menu/-/react-native-popup-menu-0.15.11.tgz"
