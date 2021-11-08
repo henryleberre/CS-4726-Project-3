@@ -8,19 +8,25 @@ import QRCode from 'react-native-qrcode-svg';
 import {Camera} from 'expo-camera';
 import Prompt from 'react-native-input-prompt';
 import {
-  Menu as PopupMenu,
-  MenuOptions as PopupMenuOptions,
-  MenuOption as PopupMenuOption,
-  MenuTrigger as PopupMenuTrigger,
+  Menu         as PopupMenu,
+  MenuOptions  as PopupMenuOptions,
+  MenuOption   as PopupMenuOption,
+  MenuTrigger  as PopupMenuTrigger,
   MenuProvider as PopupMenuProvider,
 } from 'react-native-popup-menu';
 
 const Stack = createNativeStackNavigator();
 
+let PEOPLE_DATA = [
+  {name: "Karl Marx",            bUnderAge: false, bVaccinated: true,  bTested: false},
+  {name: "Jenny von Westphalen", bUnderAge: false, bVaccinated: false, bTested: true },
+  {name: "Jenny Caroline Marx",  bUnderAge: true,  bVaccinated: false, bTested: false}
+];
+
 const EVENT_DATA = [
-  {image: require('./assets/moon.jpg'),       name: "Moon Landing Skeptics",      date: "11/17/2021", nPeople: 420,  location: "Atlanta, GA"},
-  {image: require('./assets/ussr.png'),       name: "Our Communist Party",        date: "11/23/2021", nPeople: 627,  location: "Atlanta, GA"},
-  {image: require('./assets/illuminati.jpg'), name: "New World Order Resistance", date: "11/23/2021", nPeople: 1298, location: "Atlanta, GA"},
+  {image: require('./assets/moon.jpg'),       name: "Moon Landing Skeptics",      date: "11/17/2021", nPeople: 420,  location: "Atlanta, GA", family: [""]},
+  {image: require('./assets/ussr.png'),       name: "Our Communist Party",        date: "11/23/2021", nPeople: 627,  location: "Atlanta, GA", family: [""]},
+  {image: require('./assets/illuminati.jpg'), name: "New World Order Resistance", date: "11/23/2021", nPeople: 1298, location: "Atlanta, GA", family: [""]},
 ];
 
 const PageOuterPaddingView = ({children, style}) => <View style={Object.assign({}, style, {paddingHorizontal: 12})}>{children}</View>;
@@ -130,18 +136,23 @@ function Dashboard_StatusList({navigation}) {
   );
 }
 
-function Dashboard_Status() {
+function Dashboard_Status({ bUnderAge, bVaccinated, bTested }) {
   return (
-    <Card borderRadius={10} style={{display: "flex", flexDirection: "row", paddingHorizontal: 12, padding: 15}}>
-      <View flex style={{flex:1, justifyContent: "center", alignItems: "center"}}>
-        <Text center text60>Vaccine(s)</Text>
-        <FontAwesome style={{marginVertical: 10}} name="check-circle" size={40} color="green" />
-        <Text text70>2/2 & 2 weeks</Text>
-      </View>
-      <View flex style={{flex:1, justifyContent: "center", alignItems: "center"}}>
-        <Text center text60>Test(s)</Text>
-        <FontAwesome style={{marginVertical: 10}} name="warning" size={40} color="orange" />
-        <Text text70>Expired</Text>
+    <Card borderRadius={10} style={{paddingHorizontal: 12, padding: 15}}>
+      <View style={{display: "flex", flexDirection: "column"}}>
+        <View style={{opacity: bUnderAge ? 0.1 : 1, display: "flex", flexDirection: "row"}}>
+          <View flex style={{flex:1, justifyContent: "center", alignItems: "center"}}>
+            <Text center text60>Vaccine(s)</Text>
+            <FontAwesome style={{marginVertical: 10}} name={bVaccinated ? "check-circle" : "close"} size={40} color={bVaccinated ? "green" : "red"} />
+            <Text text70>2/2 & 2 weeks</Text>
+          </View>
+          <View flex style={{flex:1, justifyContent: "center", alignItems: "center"}}>
+            <Text center text60>Test(s)</Text>
+            <FontAwesome style={{marginVertical: 10}} name={bTested ? "check-circle" : "close"} size={40} color={bTested ? "green" : "red"} />
+            <Text text70>{bTested ? "Valid 2 days" : "Invalid"}</Text>
+          </View>
+        </View>
+        {bUnderAge ? <Text center style={{paddingTop: 20}}>This person is underage, no information is required.</Text> : <></>}
       </View>
     </Card>
   );
@@ -263,19 +274,6 @@ function IconPopupMenu({ touchable, items }) {
 }
 
 function App_Dashboard({navigation}) {
-  const statusPopupItems = [
-    {
-      text: "Add Vaccine",
-      icon: <Fontisto name="injection-syringe" size={24} color="black" />,
-      func: () => { navigation.navigate("AddVaccine"); }
-    },
-    {
-      text: "Add Test",
-      icon: <MaterialCommunityIcons name="test-tube" size={24} color="black" />,
-      func: () => { navigation.navigate("AddTest"); }
-    }
-  ];
-
   let [code_prompt_show, set_code_prompt_show] = useState(false);
 
   const eventsPopupItems = [
@@ -302,11 +300,6 @@ function App_Dashboard({navigation}) {
       />
       <PageOuterPaddingView>
         {GenerateSections([
-          { 
-            name: "Your Status",
-            obj_right: (<IconPopupMenu items={statusPopupItems} touchable={<Ionicons name="add-circle-outline" size={40} color="black" />}></IconPopupMenu>), 
-            func: Dashboard_Status
-          },
           { name: "Your Upcoming Events",
             obj_right: (<IconPopupMenu items={eventsPopupItems} touchable={<Ionicons name="add-circle-outline" size={40} color="black" />}></IconPopupMenu>),
             func: Dashboard_StatusList
@@ -454,6 +447,40 @@ function App_AddVacine({navigation, route}) {
   }} />;
 }
 
+function App_People({navigation, route}) {
+  const statusPopupItems = [
+    {
+      text: "Add Vaccine",
+      icon: <Fontisto name="injection-syringe" size={24} color="black" />,
+      func: () => { navigation.navigate("AddVaccine"); }
+    },
+    {
+      text: "Add Test",
+      icon: <MaterialCommunityIcons name="test-tube" size={24} color="black" />,
+      func: () => { navigation.navigate("AddTest"); }
+    }
+  ];
+
+  const sections = PEOPLE_DATA.map((e, i) => {
+    return { name: e.name,
+             obj_right: (<IconPopupMenu items={statusPopupItems} touchable={<Ionicons name="add-circle-outline" size={40} color="black" />}></IconPopupMenu>), 
+             func: () => {return Dashboard_Status(e)} }
+  });
+
+  return (
+    <PageOuterPaddingView>
+      <Text text50 center>Health & Profiles{'\n'}</Text>
+      <View style={{display: "flex", flexDirection: "column"}}>
+        {GenerateSections(sections, navigation)}
+      </View>
+      <Text text50>{'\n'}</Text>
+      <TouchableOpacity>
+        <Button backgroundColor="white" style={{borderColor: "black", borderWidth: 2, borderRadius: 20}}><Text>Add A Member</Text></Button>
+      </TouchableOpacity>
+    </PageOuterPaddingView>
+  );
+}
+
 function ScreenHolder({navigation, route, func}) {
   return (
     <SafeAreaView style={{ flex:1, backgroundColor: "#FFFFFF" }}>
@@ -469,14 +496,15 @@ function ScreenHolder({navigation, route, func}) {
 }
 
 const APP_SCREENS = [
-  { bNavbarShow: true,  name: "Dashboard",   icon_func: (color) => <Entypo    name="home"     size={20} color={color} />, func: App_Dashboard    },
-  { bNavbarShow: true,  name: "Privacy",     icon_func: (color) => <Entypo    name="lock"     size={20} color={color} />, func: App_Privacy      },
-  { bNavbarShow: true,  name: "OpenSource",  icon_func: (color) => <AntDesign name="github"   size={20} color={color} />, func: App_OpenSource   },
-  { bNavbarShow: false, name: "Event",       icon_func: () => {},                                                         func: App_Event        },
-  { bNavbarShow: false, name: "AddTest",     icon_func: () => {},                                                         func: App_AddTest      },
-  { bNavbarShow: false, name: "AddEventQR",  icon_func: () => {},                                                         func: App_AddEventQR   },
-  { bNavbarShow: false, name: "CameraSteps", icon_func: () => {},                                                         func: Page_CameraSteps },
-  { bNavbarShow: false, name: "AddVaccine",  icon_func: () => {},                                                         func: App_AddVacine    }
+  { bNavbarShow: true,  name: "People",      icon_func: (color) => <Ionicons  name="person-circle-sharp" size={30} color={color} />, func: App_People },
+  { bNavbarShow: true,  name: "Dashboard",   icon_func: (color) => <Entypo    name="home"                size={30} color={color} />, func: App_Dashboard    },
+  { bNavbarShow: true,  name: "Privacy",     icon_func: (color) => <Entypo    name="lock"                size={30} color={color} />, func: App_Privacy      },
+  { bNavbarShow: true,  name: "OpenSource",  icon_func: (color) => <AntDesign name="github"              size={30} color={color} />, func: App_OpenSource   },
+  { bNavbarShow: false, name: "Event",       icon_func: () => {},                                                                    func: App_Event        },
+  { bNavbarShow: false, name: "AddTest",     icon_func: () => {},                                                                    func: App_AddTest      },
+  { bNavbarShow: false, name: "AddEventQR",  icon_func: () => {},                                                                    func: App_AddEventQR   },
+  { bNavbarShow: false, name: "CameraSteps", icon_func: () => {},                                                                    func: Page_CameraSteps },
+  { bNavbarShow: false, name: "AddVaccine",  icon_func: () => {},                                                                    func: App_AddVacine    }
 ];
 
 function App_Navbar({ navigation, activeItemKey }) {
@@ -485,19 +513,27 @@ function App_Navbar({ navigation, activeItemKey }) {
 
   const actions = Array.prototype.concat(
     [{
-      label: <Ionicons name="ios-chevron-back-circle-sharp" size={20} color="white" />,
-      onPressOut: () => {navigation.goBack()}
+      label: <Ionicons name="ios-chevron-back-circle-sharp" size={30} color="#000000" />,
+      func: () => {navigation.goBack()}
     }],
     APP_SCREENS.filter((e) => e.bNavbarShow).map((e, i) => {
       return {
-        label: e.icon_func(currentRoute == e.name ? "#FF0000" : "#FFFFFF" ),
-        onPressOut: () => {navigation.navigate(e.name)}
+        label: e.icon_func(currentRoute == e.name ? "#FF0000" : "#000000" ),
+        func: () => {navigation.navigate(e.name)}
       };
     })
   );
 
   return (
-    <ActionBar centered backgroundColor="#000000" actions={actions} useSafeArea={true}></ActionBar>
+    <View height={60} style={{borderTopColor: "black", borderTopWidth: "2", justifyContent: "space-evenly", alignItems: "center", flexDirection: "row"}}>
+      {actions.map((e, i) => {
+        return (
+          <TouchableOpacity key={i} onPress={e.func}>
+            {e.label}
+          </TouchableOpacity>
+        );
+      })}
+    </View>
   );
 }
 
@@ -505,7 +541,7 @@ export default function App() {
   return (
     <PopupMenuProvider>
       <NavigationContainer>
-        <Stack.Navigator screenOptions={{headerShown: false}} initialRouteName={APP_SCREENS[0].name}>
+        <Stack.Navigator screenOptions={{headerShown: false}} initialRouteName="Dashboard">
           {
             APP_SCREENS.map((e, i) => {
               return (
