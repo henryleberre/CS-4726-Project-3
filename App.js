@@ -2,10 +2,11 @@ import React, {useState, useEffect} from 'react';
 import {Dimensions, StatusBar, SafeAreaView, Platform, Linking, TouchableOpacity, ScrollView, ImageBackground} from 'react-native';
 import {NavigationContainer,useNavigationState} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {View, Text, Card, Image, ActionBar, Button} from 'react-native-ui-lib';
+import {View, Text, Card, Image, Button, ActionSheet} from 'react-native-ui-lib';
 import {Ionicons,Entypo,AntDesign,Fontisto,MaterialCommunityIcons,FontAwesome} from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import {Camera} from 'expo-camera';
+import {FlatGrid} from 'react-native-super-grid';
 import Prompt from 'react-native-input-prompt';
 import {
   Menu         as PopupMenu,
@@ -24,9 +25,9 @@ let PEOPLE_DATA = [
 ];
 
 const EVENT_DATA = [
-  {image: require('./assets/moon.jpg'),       name: "Moon Landing Skeptics",      date: "11/17/2021", nPeople: 420,  location: "Atlanta, GA", family: [""]},
-  {image: require('./assets/ussr.png'),       name: "Our Communist Party",        date: "11/23/2021", nPeople: 627,  location: "Atlanta, GA", family: [""]},
-  {image: require('./assets/illuminati.jpg'), name: "New World Order Resistance", date: "11/23/2021", nPeople: 1298, location: "Atlanta, GA", family: [""]},
+  {image: require('./assets/moon.jpg'),       name: "Moon Landing Skeptics",      date: "11/17/2021", nPeople: 420,  location: "Atlanta, GA", nReservedSpots: 3, family: ["Karl Marx"]},
+  {image: require('./assets/ussr.png'),       name: "Our Communist Party",        date: "11/23/2021", nPeople: 627,  location: "Atlanta, GA", nReservedSpots: 3, family: ["Karl Marx"]},
+  {image: require('./assets/illuminati.jpg'), name: "New World Order Resistance", date: "11/23/2021", nPeople: 1298, location: "Atlanta, GA", nReservedSpots: 3, family: ["Karl Marx"]},
 ];
 
 const PageOuterPaddingView = ({children, style}) => <View style={Object.assign({}, style, {paddingHorizontal: 12})}>{children}</View>;
@@ -78,6 +79,13 @@ function App_Event({ navigation, route }) {
                      "https://youtu.be/B-SBJjIjqYY"  // macron "Ceux qui sont et ceux qui ne sont rien"
                     ];
 
+  let grid_data = [];
+  for (let i = 0; i < event.nReservedSpots; ++i) {
+    grid_data.push([i < event.family.length, i]);
+  }
+
+  let [action_sheet_show, set_action_sheet_show] = useState(false);
+
   return (
     <ScrollView style={{display: "flex"}}>
       <Text style={{paddingVertical: 20}} center text50>{event.name}</Text>
@@ -97,30 +105,34 @@ function App_Event({ navigation, route }) {
             <Text text70> {event.date}</Text>
           </View>
         </View>
-        <Text text50>You</Text>
-        <View flex backgroundColor="#000000" style={{justifyContent: "center", alignItems: "center", borderRadius: 20, padding: 20, marginVertical: 20}}>
-          <QRCode
-            enableLinearGradient
-            backgroundColor="#000000"
-            size={200}
-            linearGradient={['rgb(0,255,255)','rgb(255,255,0)']	}
-            value={QRCodeLinks[time % (QRCodeLinks.length)]}
-          />
-        </View>
-        <Text text50 style={{paddingVertical: 20}}>Your Children</Text>
-        <View flex style={{flexDirection: "row"}}>
-          <ImageBackground source={require('./assets/bear.jpg')} resizeMode="stretch" style={{width: 200, height: 250, justifyContent: "flex-end", alignItems: "center"}}>
-            <QRCode size={120} value={QRCodeLinks[(time+1) % QRCodeLinks.length]} />
-          </ImageBackground>
-          <ImageBackground source={require('./assets/lion.jpg')} resizeMode="stretch" style={{width: 200, height: 250, justifyContent: "flex-end", alignItems: "center"}}>
-            <QRCode size={120} value={QRCodeLinks[(time+2) % QRCodeLinks.length]} />
-          </ImageBackground>
-        </View>
-        <Text center style={{marginVertical: 20}}>
-          QR-Codes regenerate every 10s and disappear once used
-          {'\n'}
-          They only function during the event
-        </Text>
+        <Text text60 style={{paddingVertical: 20}}>Participants</Text>
+        <FlatGrid
+          itemDimension={130}
+          data={grid_data}
+          renderItem={({item}) => (
+            <TouchableOpacity>
+              <Card flex style={{flexDirection: "column", padding: 20, justifyContent: "center", alignContent: "center", alignItems: "center"}}>
+                <Text text60 center>{item[0] ? event.family[item[1]] : "Add"} {'\n'}</Text>
+                {item[0] && <QRCode size={100} value={QRCodeLinks[(time + item[1]) % QRCodeLinks.length]} />}
+                {item[0] && <TouchableOpacity>
+                  <Button onPress={() => { event.family.splice(event.family.indexOf(event.family[item[1]]), 1); }} style={{marginTop: 20, borderColor: "red", borderWidth: 2, backgroundColor: "white"}}>
+                    <Text text70>Remove</Text>
+                  </Button>
+                </TouchableOpacity>}
+                {!item[0] && <AntDesign onPress={() => {set_action_sheet_show(true)}} name="adduser" size={100} color="black" />}
+              </Card>
+            </TouchableOpacity>
+          )} />
+        <ActionSheet
+          options={
+            PEOPLE_DATA.filter(x => !event.family.includes(x.name)).map((e) => {
+              return {
+                label: e.name,
+                onPress: () => { event.family.push(e.name) }
+              }
+            })
+          }
+          visible={action_sheet_show} onDismiss={() => {set_action_sheet_show(false)}} title="Add A Member" message="msg" useNativeIOS={false}  />
       </PageOuterPaddingView>
     </ScrollView>
   );
