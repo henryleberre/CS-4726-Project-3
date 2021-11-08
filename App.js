@@ -1,5 +1,5 @@
 import React,{useState,useEffect} from 'react';
-import {Dimensions,StatusBar,SafeAreaView,Platform,TouchableOpacity,ScrollView,TextInput} from 'react-native';
+import {Dimensions,StatusBar,SafeAreaView,Platform,TouchableOpacity,ScrollView,TextInput,Linking} from 'react-native';
 import {NavigationContainer,useNavigationState} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {View,Text,Card,Image,Button,ActionSheet,Dialog as RNUIDialog,Switch} from 'react-native-ui-lib';
@@ -523,6 +523,18 @@ function ScreenHolder({navigation, route, func}) {
       <View flex padding-page style={{paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0}}>
         <ScrollView>
           {func({navigation, route})}
+          <Text>{"\n"}{"\n"}</Text>
+          <Text center>Contact us:{"\n"}</Text>
+          <View flex style={{flexDirection: "row"}}>
+            <View flex style={{flex: 1, flexDirection: "row", justifyContent: "center", alignItems: "center"}}>
+              <Entypo name="phone" size={24} color="black" />
+              <Text style={{paddingHorizontal: 10, textDecorationLine: "underline"}} onPress={() => {Linking.openURL("tel:1 (800) 672-3888")}}>1 (800) 672-3888</Text>
+            </View>
+            <View flex style={{flex: 1, flexDirection: "row", justifyContent: "center", alignItems: "center"}}>
+              <Entypo name="mail" size={24} color="black" />
+              <Text style={{paddingHorizontal: 10, textDecorationLine: "underline"}} onPress={() => {Linking.openURL("mailto:kef@star-co.net.kp")}}>kef@star-co.net.kp</Text>
+            </View>
+          </View>
           <Text>{"\n"}{"\n"}</Text>
         </ScrollView>
         <App_Navbar navigation={navigation} />
